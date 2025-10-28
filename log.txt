@@ -71,3 +71,69 @@
 [BuffScannerMod] >> 找到预制体: 1019_buff_Injector_BleedResist (标签: Bleeding)
 [BuffScannerMod] >> 找到预制体: 1900_buff_Totem_Describe_hurt (标签: NotExclusive)
 --- [BuffScannerMod] 扫描结束 ---
+
+2025/10/28 21：10 查看注射器收纳包id882 相关的方法
+
+[九龙拉棺Mod[一键上buff]] 'Equals' 键长按 1 秒，触发 [一键扎包]...
+[九龙拉棺Mod[一键上buff]] [扎包-探测] === 开始探测标准 Inventory 访问方法 ===
+[九龙拉棺Mod[一键上buff]] [扎包-探测] 尝试访问 pouchItem.Inventory 属性...
+[九龙拉棺Mod[一键上buff]] [扎包-探测] 尝试 pouchItem.GetComponentInChildren<Inventory>()...
+[九龙拉棺Mod[一键上buff]] [扎包-探测] 尝试 pouchItem.GetComponent<Inventory>()...
+[九龙拉棺Mod[一键上buff]] [扎包-探测] === 标准 Inventory 探测结束 (结果: 未知) ===
+[九龙拉棺Mod[一键上buff]] [扎包-探测] === 开始探测 pouchItem (ID: -250590) 上的所有组件 ===
+  - Pouch Item 自身组件 (3 个):
+    - Type: UnityEngine.Transform
+    - Type: ItemStatsSystem.Item
+    - Type: ItemStatsSystem.Items.SlotCollection
+  - Child: Injection_Healing(Clone) (InstanceID: -250596)
+    - Components (5 个):
+      - Type: UnityEngine.Transform
+      - Type: ItemStatsSystem.Item
+      - Type: ItemStatsSystem.UsageUtilities
+      - Type: Duckov.ItemUsage.AddBuff
+      - Type: Duckov.ItemUsage.FoodDrink
+  - Child: Injection_PainResist(Clone) (InstanceID: -250608)
+    - Components (5 个):
+      - Type: UnityEngine.Transform
+      - Type: ItemStatsSystem.Item
+      - Type: ItemStatsSystem.UsageUtilities
+      - Type: Duckov.ItemUsage.AddBuff
+      - Type: Duckov.ItemUsage.FoodDrink
+
+[九龙拉棺Mod[一键上buff]] [扎包-探测] === 组件探测结束 ===
+[九龙拉棺Mod[一键上buff]] [扎包-探测] === 开始探测 pouchItem 的自定义变量 (Variables) ===
+  - Pouch Item 变量 (1 个):
+    - Key: 'Inspected', Type: Bool, Value: '+'
+
+[九龙拉棺Mod[一键上buff]] [扎包-探测] === 变量探测结束 ===
+[九龙拉棺Mod[一键上buff]] [扎包] 最终错误：通过标准方法仍无法访问其内部 Inventory 组件！请检查上方探测日志寻找线索。
+0x00007ffa54ce350d (UnityPlayer) StackWalker::GetCurrentCallstack
+0x00007ffa54ce3288 (UnityPlayer) StackWalker::ShowCallstack
+0x00007ffa54cc9cd9 (UnityPlayer) GetStacktrace
+0x00007ffa55369e51 (UnityPlayer) DebugStringToFile
+0x00007ffa5434b105 (UnityPlayer) DebugLogHandler_CUSTOM_Internal_Log
+0x0000025629d1a233 (Mono JIT Code) (wrapper managed-to-native) UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+0x0000025629d19edb (Mono JIT Code) UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+0x0000025629d19c20 (Mono JIT Code) UnityEngine.Logger:Log (UnityEngine.LogType,object)
+0x0000025676c23be5 (Mono JIT Code) UnityEngine.Debug:LogError (object)
+0x00000256a6078373 (Mono JIT Code) AddBuffMod.ModBehaviour/<TriggerPouchUseAsync>d__37:MoveNext ()
+0x00000256a60766eb (Mono JIT Code) AddBuffMod.ModBehaviour:TriggerPouchUseAsync ()
+0x000002569e0a11f3 (Mono JIT Code) AddBuffMod.ModBehaviour:HandlePouchUseKey ()
+0x000002567e05ffc3 (Mono JIT Code) AddBuffMod.ModBehaviour:Update ()
+0x000002564f84e758 (Mono JIT Code) (wrapper runtime-invoke) object:runtime_invoke_void__this__ (object,intptr,intptr,intptr)
+0x00007ffa45374b7e (mono-2.0-bdwgc) mono_jit_set_domain
+0x00007ffa452ad204 (mono-2.0-bdwgc) mono_object_get_virtual_method
+0x00007ffa452ad37c (mono-2.0-bdwgc) mono_runtime_invoke
+0x00007ffa54a4fe96 (UnityPlayer) MonoBehaviour::CallMethodIfAvailable
+0x00007ffa54a4ffd1 (UnityPlayer) MonoBehaviour::CallUpdateMethod
+0x00007ffa54720d20 (UnityPlayer) BaseBehaviourManager::CommonUpdate<BehaviourManager>
+0x00007ffa5488f778 (UnityPlayer) ExecutePlayerLoop
+0x00007ffa5488f964 (UnityPlayer) ExecutePlayerLoop
+0x00007ffa5488fe82 (UnityPlayer) PlayerLoop
+0x00007ffa54ae33db (UnityPlayer) PerformMainLoop
+0x00007ffa54ae5dab (UnityPlayer) MainMessageLoop
+0x00007ffa54ae910b (UnityPlayer) UnityMainImpl
+0x00007ffa54ae93ab (UnityPlayer) UnityMain
+0x00007ff7f79411f6 (Duckov) __scrt_common_main_seh
+0x00007ffbc635e8d7 (KERNEL32) BaseThreadInitThunk
+0x00007ffbc7aac53c (ntdll) RtlUserThreadStart

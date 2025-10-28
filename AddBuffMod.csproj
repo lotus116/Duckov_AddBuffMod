@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<Nullable>enable</Nullable>
+		<!-- For Windows users, please fill the folder path which contains Duckov.exe below -->
+		<!-- Windows 用户请在下面这行填写你的鸭科夫安装路径（包含 Duckov.exe 的目录），这样编译器就能找到相关的 dll 文件 -->
+		<DuckovPath>D:\Games\Steam\steamapps\common\Escape from Duckov</DuckovPath>
+		<SubPath>\Duckov_Data\Managed\</SubPath>
+
+
+	</PropertyGroup>
+	<ItemGroup>
+		<Reference Include="$(DuckovPath)$(SubPath)TeamSoda.*"/>
+		<Reference Include="$(DuckovPath)$(SubPath)ItemStatsSystem.dll"/>
+		<Reference Include="$(DuckovPath)$(SubPath)Unity*"/>
+		<Reference Include="$(DuckovPath)\Duckov_Data\Managed\UnityEngine.CoreModule.dll">
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="$(DuckovPath)\Duckov_Data\Managed\UnityEngine.InputLegacyModule.dll">
+			<Private>false</Private>
+		</Reference>
+
+		<Reference Include="$(DuckovPath)\Duckov_Data\Managed\Duckov.dll">
+			<Private>false</Private>
+		</Reference>
+
+		<Reference Include="$(DuckovPath)\Duckov_Data\Managed\Assembly-CSharp.dll">
+			<Private>false</Private>
+		</Reference>
+
+		<Reference Include="$(DuckovPath)\Duckov_Data\Managed\Duckov.UI.dll">
+			<Private>false</Private>
+		</Reference>
+
+		<Reference Include="$(DuckovPath)\Duckov_Data\Managed\UniRx.Async.dll">
+			<Private>false</Private>
+		</Reference>
+
+		<Reference Include="$(DuckovPath)\Duckov_Data\Managed\UniTask.dll">
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="$(DuckovPath)$(SubPath)ModConfig.dll">
+			<Private>false</Private>
+		</Reference>
+		<Reference Include="$(DuckovPath)\BepInEx\plugins\Duckov.ModConfig\Duckov.ModConfig.dll">
+			<Private>false</Private>
+		</Reference>
+
+	</ItemGroup>
+</Project>

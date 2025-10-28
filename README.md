@@ -4,14 +4,14 @@
 创意工坊链接：https://steamcommunity.com/sharedfiles/filedetails/?id=3595021711
 
 ## V2.1 更新 - 现已支持 [ModConfig] 自定义按键！
-*大家好！本次更新为 Mod 增加了按键自定义功能。*  
+**大家好！本次更新为 Mod 增加了按键自定义功能。**  
 如何使用：  
 你必须先在创意工坊订阅并启用 ModConfig Mod。  
 进入游戏场景（非主菜单），打开 设置 -> Mod 设置。  
 在列表中找到 BuffTestMod。   
 你会看到 10 个用于设置按键的文本输入框。  
 
-*【重要】如何填写按键：*  
+**【重要】如何填写按键：**  
 你需要在输入框中填写按键的“英文名称 (KeyCode)”。  
 常用按键示例：  
 主键盘数字 1-9： Alpha1, Alpha2 ... Alpha9  
@@ -22,7 +22,7 @@ F 键： F1, F2, F12
 鼠标： Mouse0 (左键), Mouse1 (右键), Mouse2 (中键)  
 其他： Space (空格), LeftControl (左Ctrl), LeftShift (左Shift)  
 
-*提示：*  
+**提示：**  
 修改后按键会立即生效。  
 如果你不安装 ModConfig，本 Mod 仍会使用默认的 Alpha0 - Alpha9 按键，不影响原版功能。  
 祝大家游戏愉快！  

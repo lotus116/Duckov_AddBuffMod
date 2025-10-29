@@ -1,6 +1,6 @@
 # 九龙拉棺Mod【一键上buff】(AddBuffMod)
 
-这是一个简单的鸭科夫 Mod，允许你通过热键为自己添加正面的 Buff。
+这是一个简单的鸭科夫 Mod，允许你通过热键为自己添加正面的 Buff。  
 创意工坊链接：https://steamcommunity.com/sharedfiles/filedetails/?id=3595021711
 
 ## V3.3 重大更新 (2025/10/29)

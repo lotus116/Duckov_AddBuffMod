@@ -72,68 +72,54 @@
 [BuffScannerMod] >> 找到预制体: 1900_buff_Totem_Describe_hurt (标签: NotExclusive)
 --- [BuffScannerMod] 扫描结束 ---
 
-2025/10/28 21：10 查看注射器收纳包id882 相关的方法
+#####################[[2025/10/29 8：30 查看注射器收纳包id882 相关的方法]]#########################
 
-[九龙拉棺Mod[一键上buff]] 'Equals' 键长按 1 秒，触发 [一键扎包]...
-[九龙拉棺Mod[一键上buff]] [扎包-探测] === 开始探测标准 Inventory 访问方法 ===
-[九龙拉棺Mod[一键上buff]] [扎包-探测] 尝试访问 pouchItem.Inventory 属性...
-[九龙拉棺Mod[一键上buff]] [扎包-探测] 尝试 pouchItem.GetComponentInChildren<Inventory>()...
-[九龙拉棺Mod[一键上buff]] [扎包-探测] 尝试 pouchItem.GetComponent<Inventory>()...
-[九龙拉棺Mod[一键上buff]] [扎包-探测] === 标准 Inventory 探测结束 (结果: 未知) ===
-[九龙拉棺Mod[一键上buff]] [扎包-探测] === 开始探测 pouchItem (ID: -250590) 上的所有组件 ===
-  - Pouch Item 自身组件 (3 个):
+[九龙拉棺Mod[一键上buff]] 'Minus' 键长按 1 秒，触发 [一键扎包]...
+[九龙拉棺Mod[一键上buff]] [扎包] 正在搜索玩家背包...
+[九龙拉棺Mod[一键上buff]] [扎包] 玩家背包未找到，尝试搜索宠物...
+[九龙拉棺Mod[一键上buff]] [扎包-宠物探测] 找到 PetCharacter: Character(Clone) (InstanceID: -539930)
+[九龙拉棺Mod[一键上buff]] [扎包-宠物探测] 尝试 GetComponentsInChildren<Inventory>(true)...
+[九龙拉棺Mod[一键上buff]] [扎包-宠物探测] 在 PetCharacter 下找到 1 个 Inventory 组件。开始逐个搜索...
+[九龙拉棺Mod[一键上buff]] [扎包-宠物探测]  - 检查第 1 个 Inventory (InstanceID: -539894, Capacity: 15)...
+[九龙拉棺Mod[一键上buff]] [宠物背包1-探测] === 开始打印 宠物背包1 (GameObject: Character(Clone), InstanceID: -539894) 内容 ===
+  - Capacity: 15
+  - Item Count: 0
+  - Content List (Size: 0):
+[九龙拉棺Mod[一键上buff]] [宠物背包1-探测] === 打印 宠物背包1 内容结束 ===
+
+[九龙拉棺Mod[一键上buff]] [扎包] 在 PetCharacter 的所有 Inventory 中均未找到收纳包。
+[九龙拉棺Mod[一键上buff]] [扎包] 在 PetCharacter 下未找到收纳包，尝试搜索 PetProxy...
+[九龙拉棺Mod[一键上buff]] [扎包-PetProxy探测] 找到 PetProxy: PetProxy (InstanceID: -488010)
+[九龙拉棺Mod[一键上buff]] [PetProxy-探测] === 开始打印 PetProxy (PetProxy, InstanceID: -488000) 组件 ===
+  - Components (5 个):
     - Type: UnityEngine.Transform
-    - Type: ItemStatsSystem.Item
-    - Type: ItemStatsSystem.Items.SlotCollection
-  - Child: Injection_Healing(Clone) (InstanceID: -250596)
-    - Components (5 个):
-      - Type: UnityEngine.Transform
-      - Type: ItemStatsSystem.Item
-      - Type: ItemStatsSystem.UsageUtilities
-      - Type: Duckov.ItemUsage.AddBuff
-      - Type: Duckov.ItemUsage.FoodDrink
-  - Child: Injection_PainResist(Clone) (InstanceID: -250608)
-    - Components (5 个):
-      - Type: UnityEngine.Transform
-      - Type: ItemStatsSystem.Item
-      - Type: ItemStatsSystem.UsageUtilities
-      - Type: Duckov.ItemUsage.AddBuff
-      - Type: Duckov.ItemUsage.FoodDrink
+    - Type: UnityEngine.BoxCollider
+    - Type: InteractableLootbox
+    - Type: ItemStatsSystem.Inventory
+    - Type: PetProxy
+[九龙拉棺Mod[一键上buff]] [PetProxy-探测] === 打印 PetProxy 组件结束 ===
 
-[九龙拉棺Mod[一键上buff]] [扎包-探测] === 组件探测结束 ===
-[九龙拉棺Mod[一键上buff]] [扎包-探测] === 开始探测 pouchItem 的自定义变量 (Variables) ===
-  - Pouch Item 变量 (1 个):
-    - Key: 'Inspected', Type: Bool, Value: '+'
+[九龙拉棺Mod[一键上buff]] [扎包-PetProxy探测] 尝试 GetComponentsInChildren<Inventory>(true)...
+[九龙拉棺Mod[一键上buff]] [扎包-PetProxy探测] 在 PetProxy 下找到 1 个 Inventory 组件。开始逐个搜索...
+[九龙拉棺Mod[一键上buff]] [扎包-PetProxy探测]  - 检查第 1 个 Inventory (InstanceID: -488008, Capacity: 4)...
+[九龙拉棺Mod[一键上buff]] [PetProxy背包1-探测] === 开始打印 PetProxy背包1 (GameObject: PetProxy, InstanceID: -488008) 内容 ===
+  - Capacity: 4
+  - Item Count: 4
+  - Content List (Size: 4):
+    - Index 0: 钥匙包 (ID: 836, Stack: 1, InstanceID: -520936)
+    - Index 1: 六级防弹衣 (ID: 885, Stack: 1, InstanceID: -520944)
+    - Index 2: 神之电焊头 (ID: 46, Stack: 1, InstanceID: -520954)
+    - Index 3: 注射器收纳包 (ID: 882, Stack: 1, InstanceID: -521002)
+[九龙拉棺Mod[一键上buff]] [PetProxy背包1-探测] === 打印 PetProxy背包1 内容结束 ===
 
-[九龙拉棺Mod[一键上buff]] [扎包-探测] === 变量探测结束 ===
-[九龙拉棺Mod[一键上buff]] [扎包] 最终错误：通过标准方法仍无法访问其内部 Inventory 组件！请检查上方探测日志寻找线索。
-0x00007ffa54ce350d (UnityPlayer) StackWalker::GetCurrentCallstack
-0x00007ffa54ce3288 (UnityPlayer) StackWalker::ShowCallstack
-0x00007ffa54cc9cd9 (UnityPlayer) GetStacktrace
-0x00007ffa55369e51 (UnityPlayer) DebugStringToFile
-0x00007ffa5434b105 (UnityPlayer) DebugLogHandler_CUSTOM_Internal_Log
-0x0000025629d1a233 (Mono JIT Code) (wrapper managed-to-native) UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
-0x0000025629d19edb (Mono JIT Code) UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
-0x0000025629d19c20 (Mono JIT Code) UnityEngine.Logger:Log (UnityEngine.LogType,object)
-0x0000025676c23be5 (Mono JIT Code) UnityEngine.Debug:LogError (object)
-0x00000256a6078373 (Mono JIT Code) AddBuffMod.ModBehaviour/<TriggerPouchUseAsync>d__37:MoveNext ()
-0x00000256a60766eb (Mono JIT Code) AddBuffMod.ModBehaviour:TriggerPouchUseAsync ()
-0x000002569e0a11f3 (Mono JIT Code) AddBuffMod.ModBehaviour:HandlePouchUseKey ()
-0x000002567e05ffc3 (Mono JIT Code) AddBuffMod.ModBehaviour:Update ()
-0x000002564f84e758 (Mono JIT Code) (wrapper runtime-invoke) object:runtime_invoke_void__this__ (object,intptr,intptr,intptr)
-0x00007ffa45374b7e (mono-2.0-bdwgc) mono_jit_set_domain
-0x00007ffa452ad204 (mono-2.0-bdwgc) mono_object_get_virtual_method
-0x00007ffa452ad37c (mono-2.0-bdwgc) mono_runtime_invoke
-0x00007ffa54a4fe96 (UnityPlayer) MonoBehaviour::CallMethodIfAvailable
-0x00007ffa54a4ffd1 (UnityPlayer) MonoBehaviour::CallUpdateMethod
-0x00007ffa54720d20 (UnityPlayer) BaseBehaviourManager::CommonUpdate<BehaviourManager>
-0x00007ffa5488f778 (UnityPlayer) ExecutePlayerLoop
-0x00007ffa5488f964 (UnityPlayer) ExecutePlayerLoop
-0x00007ffa5488fe82 (UnityPlayer) PlayerLoop
-0x00007ffa54ae33db (UnityPlayer) PerformMainLoop
-0x00007ffa54ae5dab (UnityPlayer) MainMessageLoop
-0x00007ffa54ae910b (UnityPlayer) UnityMainImpl
-0x00007ffa54ae93ab (UnityPlayer) UnityMain
-0x00007ff7f79411f6 (Duckov) __scrt_common_main_seh
-0x00007ffbc635e8d7 (KERNEL32) BaseThreadInitThunk
-0x00007ffbc7aac53c (ntdll) RtlUserThreadStart
+[九龙拉棺Mod[一键上buff]] [扎包] 在 PetProxy背包1 中找到收纳包！
+[九龙拉棺Mod[一键上buff]] [扎包] 找到 SlotCollection (来自PetProxy背包1)，准备处理内部针剂 (硬核模式: False)...
+[九龙拉棺Mod[一键上buff]] [扎包] (非硬核) 正在应用 Buff '1011_Buff_AddSpeed' 来自 黄针
+[九龙拉棺Mod[一键上buff]] [扎包] (非硬核) 等待 1.2 秒...
+[九龙拉棺Mod[一键上buff]] [扎包] (非硬核) 正在应用 Buff '1015_Buff_InjectorMeleeDamage' 来自 近战针
+[九龙拉棺Mod[一键上buff]] [扎包] (非硬核) 等待 1.2 秒...
+[九龙拉棺Mod[一键上buff]] [扎包] (非硬核) 正在应用 Buff '1018_Buff_HealForWhile' 来自 恢复针
+[九龙拉棺Mod[一键上buff]] [扎包] (非硬核) 等待 1.2 秒...
+[九龙拉棺Mod[一键上buff]] [扎包] 收纳包内针剂处理完毕。
+DisplayTotalReward PatchMoneyDisplayOnEnable Refresh
+

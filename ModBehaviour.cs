@@ -1,13 +1,14 @@
 ﻿// ------------------------------------------------------------------
-// AddBuffMod - 【V3.3 - 新增“一键扎包”（一键使用注射器收纳包内的所有针剂）、新增各种抗性buff并且支持自定义按键、优化了注射时的文字显示】
+// AddBuffMod - 【V3.3.2 - 修复硬核模式热键消耗Bug】
 // - 按键、长按时长、硬核模式、一键九龙 均可自定义
+// - 重要修复: 修复硬核模式下，热键使用单个针剂(如黄针、热血)时，导致物品消耗但Buff未添加的Bug (2025/10/30 8:40)
 // - 重要修复: 优先搜索 PetProxy 上的 Inventory，确保正确找到 4 格宠物背包
 // - 重要修复: 硬核模式 (九龙/热键) 会搜索玩家、宠物及其中的注射器收纳包
 // - 更新: "一键扎包" 且"一键扎包"始终不消耗物品 (非硬核)，并在硬核模式下提示不能使用该功能
 // - 优化: 原始 9 Buff 热键现在显示中文气泡
 // - 优化: 扎包 0.5 秒使用间隔 （提供一种视觉上的遍历使用的感觉）
 // - 优化: 使用异步方法缓存 Buff 预制体，避免卡顿
-//  cclear116 于 2025/20/29
+//  cclear116 于 2025/10/30
 // ------------------------------------------------------------------
 
 using UnityEngine;                // MonoBehaviour, Debug, Input, KeyCode, Resources, Component
@@ -34,7 +35,7 @@ namespace AddBuffMod
     public class ModBehaviour : Duckov.Modding.ModBehaviour
     {
         // ModConfig 名称
-        public static string MOD_NAME = "九龙拉棺Mod[一键上buff]v3.3";
+        public static string MOD_NAME = "九龙拉棺Mod[一键上buff]v3.4"; // [V3.4] 更新版本号
 
         // 默认长按时间
         private const float HOLD_DURATION_DEFAULT = 1.0f;
@@ -136,7 +137,7 @@ namespace AddBuffMod
         /// </summary>
         private void TryRegisterConfig()
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             if (_configRegistered || !ModConfigAPI.IsAvailable()) return;
             Debug.Log($"[{MOD_NAME}] 正在注册 ModConfig 配置项 (执行一次)...");
             if (!ModConfigAPI.Initialize()) { Debug.LogWarning($"[{MOD_NAME}] ModConfig API init failed."); return; } //
@@ -160,6 +161,7 @@ namespace AddBuffMod
             ModConfigAPI.SafeAddInputWithSlider(MOD_NAME, "BuffKey12", "Buff 12 [火抗] Key", typeof(string), "None", null); //
             ModConfigAPI.SafeAddInputWithSlider(MOD_NAME, "BuffKey13", "Buff 13 [毒抗] Key", typeof(string), "None", null); //
             ModConfigAPI.SafeAddInputWithSlider(MOD_NAME, "BuffKey14", "Buff 14 [空间抗] Key", typeof(string), "None", null); //
+            ModConfigAPI.SafeAddInputWithSlider(MOD_NAME, "BuffKey15", "Buff 15 [止血] Key", typeof(string), "None", null); //
             Debug.Log($"[{MOD_NAME}] ModConfig setup completed");
             _configRegistered = true;
         }
@@ -169,7 +171,7 @@ namespace AddBuffMod
         /// </summary>
         private void OnModConfigOptionsChanged(string key)
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             if (!key.StartsWith(MOD_NAME + "_")) return;
             Debug.Log($"[{MOD_NAME}] Config updated - {key}. Reloading...");
             LoadConfigFromModConfig();
@@ -181,7 +183,7 @@ namespace AddBuffMod
         /// </summary>
         private void LoadConfigFromModConfig()
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             _buffKeyMap.Clear();
             _holdDurationConfig = ModConfigAPI.SafeLoad<float>(MOD_NAME, "HoldDuration", HOLD_DURATION_DEFAULT); //
             _hardcoreModeConfig = ModConfigAPI.SafeLoad<bool>(MOD_NAME, "HardcoreMode", false); //
@@ -195,6 +197,7 @@ namespace AddBuffMod
             LoadAndMapKey("BuffKey9", "Alpha9", "1014_Buff_InjectorStamina"); LoadAndMapKey("BuffKey10", "None", "1072_Buff_ElecResistShort");
             LoadAndMapKey("BuffKey11", "None", "1015_Buff_InjectorMeleeDamage"); LoadAndMapKey("BuffKey12", "None", "1074_Buff_FireResistShort");
             LoadAndMapKey("BuffKey13", "None", "1075_Buff_PoisonResistShort"); LoadAndMapKey("BuffKey14", "None", "1076_Buff_SpaceResistShort");
+            LoadAndMapKey("BuffKey15", "None", "1019_buff_Injector_BleedResist");
             string key0Str = ModConfigAPI.SafeLoad<string>(MOD_NAME, "NineDragonsKey", "Alpha0"); //
             if (!System.Enum.TryParse<KeyCode>(key0Str, true, out _nineDragonsKeyCode)) _nineDragonsKeyCode = KeyCode.None;
             LogModInfo();
@@ -205,7 +208,7 @@ namespace AddBuffMod
         /// </summary>
         private void LoadAndMapKey(string configKey, string defaultKeyString, string buffName)
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             string keyStr = ModConfigAPI.SafeLoad<string>(MOD_NAME, configKey, defaultKeyString); //
             if (System.Enum.TryParse<KeyCode>(keyStr, true, out KeyCode parsedKey) && parsedKey != KeyCode.None && !keyStr.Equals("None", StringComparison.OrdinalIgnoreCase))
                 _buffKeyMap[parsedKey] = buffName;
@@ -216,7 +219,7 @@ namespace AddBuffMod
         /// </summary>
         private void InitializeBuffItemMap()
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             _buffItemMap.Clear();
             _buffItemMap["1018_Buff_HealForWhile"] = 875; _buffItemMap["1011_Buff_AddSpeed"] = 137;
             _buffItemMap["1017_Buff_InjectorRecoilControl"] = 872; _buffItemMap["1012_Buff_InjectorMaxWeight"] = 398;
@@ -225,6 +228,7 @@ namespace AddBuffMod
             _buffItemMap["1201_Buff_NightVision"] = 0; _buffItemMap["1072_Buff_ElecResistShort"] = 408;
             _buffItemMap["1015_Buff_InjectorMeleeDamage"] = 800; _buffItemMap["1074_Buff_FireResistShort"] = 1070;
             _buffItemMap["1075_Buff_PoisonResistShort"] = 1071; _buffItemMap["1076_Buff_SpaceResistShort"] = 1072;
+            _buffItemMap["1019_buff_Injector_BleedResist"] = 1247;
         }
 
         /// <summary>
@@ -232,10 +236,11 @@ namespace AddBuffMod
         /// </summary>
         private void InitializeItemIdToBuffMap()
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             _itemIdToBuffNameMap.Clear();
             foreach (var kvp in _buffItemMap) { if (!string.IsNullOrEmpty(kvp.Key) && kvp.Value >= 0) _itemIdToBuffNameMap[kvp.Value] = kvp.Key; }
-            _itemIdToBuffNameMap[395] = null; _itemIdToBuffNameMap[857] = null; _itemIdToBuffNameMap[1247] = null; _itemIdToBuffNameMap[856] = null;
+            _itemIdToBuffNameMap[395] = null; _itemIdToBuffNameMap[857] = null;
+            _itemIdToBuffNameMap[856] = null;
             if (!_itemIdToBuffNameMap.ContainsKey(0)) _itemIdToBuffNameMap[0] = "1201_Buff_NightVision"; //
             Debug.Log($"[{MOD_NAME}] Initialized ItemID to BuffName Map with {_itemIdToBuffNameMap.Count} entries.");
         }
@@ -245,7 +250,7 @@ namespace AddBuffMod
         /// </summary>
         private void InitializeNineDragonsBuffList()
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             _nineDragonsBuffNames.Clear();
             _nineDragonsBuffNames.Add("1018_Buff_HealForWhile"); _nineDragonsBuffNames.Add("1011_Buff_AddSpeed");
             _nineDragonsBuffNames.Add("1017_Buff_InjectorRecoilControl"); _nineDragonsBuffNames.Add("1012_Buff_InjectorMaxWeight");
@@ -259,7 +264,7 @@ namespace AddBuffMod
         /// </summary>
         private void InitializeNameMaps()
         {
-            // ... (代码同 V2.32，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             _buffDragonNames.Clear();
             _buffDragonNames["1018_Buff_HealForWhile"] = "西斯龙";
             _buffDragonNames["1011_Buff_AddSpeed"] = "群勃龙";
@@ -281,6 +286,7 @@ namespace AddBuffMod
             _buffChineseNames["1084_Buff_PainResistLong"] = "镇静";
             _buffChineseNames["1201_Buff_NightVision"] = "明视";
             _buffChineseNames["1014_Buff_InjectorStamina"] = "持久";
+            _buffChineseNames["1019_buff_Injector_BleedResist"] = "止血";
 
             _buffItemChineseNames.Clear();
             _buffItemChineseNames["1018_Buff_HealForWhile"] = "恢复针";
@@ -296,6 +302,7 @@ namespace AddBuffMod
             _buffItemChineseNames["1074_Buff_FireResistShort"] = "火抗性针";
             _buffItemChineseNames["1075_Buff_PoisonResistShort"] = "毒抗性针";
             _buffItemChineseNames["1076_Buff_SpaceResistShort"] = "空间抗性针";
+            _buffItemChineseNames["1019_buff_Injector_BleedResist"] = "止血针";
         }
 
 
@@ -304,7 +311,7 @@ namespace AddBuffMod
         /// </summary>
         private void InitializeBuffHotkeys()
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             _buffKeyMap.Clear();
             _buffKeyMap[KeyCode.Alpha1] = "1018_Buff_HealForWhile"; _buffKeyMap[KeyCode.Alpha2] = "1011_Buff_AddSpeed";
             _buffKeyMap[KeyCode.Alpha3] = "1017_Buff_InjectorRecoilControl"; _buffKeyMap[KeyCode.Alpha4] = "1012_Buff_InjectorMaxWeight";
@@ -318,7 +325,7 @@ namespace AddBuffMod
         // 每帧调用，检测按键
         void Update()
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             HandleBuffHotkeys();
             HandleNineDragonsCoffinKey();
             HandlePouchUseKey();
@@ -329,7 +336,7 @@ namespace AddBuffMod
         /// </summary>
         private void HandleNineDragonsCoffinKey()
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             if (_nineDragonsKeyCode == KeyCode.None || _zeroIsSequenceRunning) return;
             if (Input.GetKeyDown(_nineDragonsKeyCode)) { if (_instantNineDragonsConfig) { Debug.Log($"[{MOD_NAME}] '{_nineDragonsKeyCode}' key down, instant trigger..."); _zeroActionTriggeredThisPress = true; _zeroIsSequenceRunning = true; TriggerNineDragonsCoffinAsync().Forget(); } _zeroKeyDownStartTime = Time.time; _zeroActionTriggeredThisPress = false; }
             if (!_instantNineDragonsConfig && Input.GetKey(_nineDragonsKeyCode)) { if (_zeroKeyDownStartTime == 0f) return; float holdTime = Time.time - _zeroKeyDownStartTime; if (holdTime >= _holdDurationConfig && !_zeroActionTriggeredThisPress) { _zeroActionTriggeredThisPress = true; _zeroIsSequenceRunning = true; Debug.Log($"[{MOD_NAME}] '{_nineDragonsKeyCode}' held for {_holdDurationConfig}s, trigger..."); TriggerNineDragonsCoffinAsync().Forget(); } }
@@ -341,7 +348,7 @@ namespace AddBuffMod
         /// </summary>
         private void HandleBuffHotkeys()
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             foreach (var pair in _buffKeyMap)
             {
                 KeyCode key = pair.Key; string buffName = pair.Value;
@@ -357,7 +364,7 @@ namespace AddBuffMod
         /// </summary>
         private void HandlePouchUseKey()
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             if (_pouchUseKeyCode == KeyCode.None || _pouchSequenceRunning) return;
             if (Input.GetKeyDown(_pouchUseKeyCode)) { _pouchKeyDownStartTime = Time.time; _pouchActionTriggered = false; }
             if (Input.GetKey(_pouchUseKeyCode)) { if (_pouchKeyDownStartTime == 0f) return; float holdTime = Time.time - _pouchKeyDownStartTime; if (holdTime >= _holdDurationConfig && !_pouchActionTriggered) { _pouchActionTriggered = true; _pouchSequenceRunning = true; Debug.Log($"[{MOD_NAME}] '{_pouchUseKeyCode}' held for {_holdDurationConfig}s, trigger pouch..."); TriggerPouchUseAsync().Forget(); } }
@@ -370,7 +377,7 @@ namespace AddBuffMod
         /// </summary>
         private async UniTask CacheBuffPrefabsAsync()
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             HashSet<string> buffsToFind = new HashSet<string>(_itemIdToBuffNameMap.Values.Where(name => name != null));
             if (buffsToFind.Count == 0) { Debug.LogError($"[{MOD_NAME}] No buffs to cache!"); return; }
             Debug.Log($"[{MOD_NAME}] Searching for {buffsToFind.Count} buff prefabs...");
@@ -405,8 +412,9 @@ namespace AddBuffMod
                     {
                         if (!_buffItemMap.TryGetValue(buffName, out int itemID) || itemID <= 0) continue;
 
+                        // [修改 V3.4] 返回值变为 (bool Success, Item FoundItem, object Container, string Location)
                         var findResult = await FindAndConsumeHardcoreItemAsync(itemID, mainCharacter, false); // 只查找，不消耗
-                        if (findResult.Item1 == null)
+                        if (!findResult.Item1) // [修改 V3.4] 检查 Success (Item1)
                         {
                             Debug.LogWarning($"[{MOD_NAME}] NineDragons fail: Missing {itemID} ({buffName})");
                             _buffItemChineseNames.TryGetValue(buffName, out string itemName);
@@ -414,7 +422,7 @@ namespace AddBuffMod
                             canAfford = false;
                             break;
                         }
-                        itemsToConsumeDetails.Add((findResult.Item2, findResult.Item1));
+                        itemsToConsumeDetails.Add((findResult.Item3, findResult.Item2)); // [修改 V3.4] (Container (Item3), FoundItem (Item2))
                     }
                     if (!canAfford) { _zeroIsSequenceRunning = false; return; }
                 }
@@ -469,9 +477,11 @@ namespace AddBuffMod
                     }
                     else
                     {
+                        // [修改 V3.4] 返回值变为 (bool Success, Item FoundItem, object Container, string Location)
                         var findConsumeResult = await FindAndConsumeHardcoreItemAsync(itemID, mainCharacter, true); // 查找并消耗
-                        if (findConsumeResult.Item1 == null)
-                        { // 检查 Item 是否为 null
+
+                        if (!findConsumeResult.Item1) // [修改 V3.4] 检查 Success (Item1)
+                        { // 检查是否成功
                             Debug.LogWarning($"[{MOD_NAME}] Add Buff fail: Item ID {itemID} ({buffName}) not found or couldn't be consumed.");
                             // (修改) 使用中文气泡
                             if (_buffItemChineseNames.TryGetValue(buffName, out string itemName))
@@ -480,6 +490,7 @@ namespace AddBuffMod
                                 ShowBubbleAsync(mainCharacter.transform, $"Fail: Missing item for {buffName}", 2f).Forget(); //
                             canProceed = false; // 找不到物品，不能添加 Buff
                         }
+                        // [V3.4] 如果 findConsumeResult.Item1 (Success) 为 true, canProceed 保持 true, 即使 Item2 (FoundItem) 是 pseudo-null
                     }
                 }
                 // --- 硬核模式检查结束 ---
@@ -506,21 +517,18 @@ namespace AddBuffMod
         /// </summary>
         private async UniTask TriggerPouchUseAsync()
         {
+            // ... (代码同 V3.3，无需修改) ...
             CharacterMainControl mainCharacter = null;
             try
             {
                 mainCharacter = CharacterMainControl.Main; if (mainCharacter == null) { Debug.LogError($"[{MOD_NAME}] [扎包] 无法获取主角色！"); return; }
 
-                // --- (修改) 检查硬核模式并提示 ---
                 if (_hardcoreModeConfig)
                 {
                     Debug.LogWarning($"[{MOD_NAME}] [扎包] (硬核模式) '一键扎包' 仅添加Buff，不消耗物品。");
                     ShowBubbleAsync(mainCharacter.transform, "此功能目前仅支持非硬核模式开启", 3.0f).Forget(); //
-                    // (修改) 立即返回，禁用此功能
                     return;
                 }
-                // --- 提示结束 ---
-
 
                 Item pouchItem = null; string foundLocation = "未知";
                 var searchResult = await FindPouchAndParentInventoryAsync(mainCharacter);
@@ -539,7 +547,6 @@ namespace AddBuffMod
                     Item currentInjectorInstance = currentSlot?.Content;
                     if (currentInjectorInstance == null) { Debug.LogWarning($"[{MOD_NAME}] [扎包] 物品 {injectorRef.DisplayName} ({injectorRef.GetInstanceID()}) 处理前被移除。"); continue; } //
 
-                    // --- 统一 AddBuff 逻辑 ---
                     bool buffApplied = false;
                     if (_itemIdToBuffNameMap.TryGetValue(currentInjectorInstance.TypeID, out string buffName) && buffName != null)
                     {
@@ -551,10 +558,8 @@ namespace AddBuffMod
                         else Debug.LogWarning($"[{MOD_NAME}] [扎包] Buff '{buffName}' 未缓存！");
                     }
                     else { Debug.Log($"[{MOD_NAME}] [扎包] 物品 {currentInjectorInstance.DisplayName} (ID: {currentInjectorInstance.TypeID}) 无对应 Buff。"); } //
-                    // --- 等待 ---
                     Debug.Log($"[{MOD_NAME}] [扎包] 等待 {POUCH_USE_INTERVAL} 秒...");
                     await UniTask.Delay(TimeSpan.FromSeconds(POUCH_USE_INTERVAL));
-                    // --- (修改) 移除所有消耗逻辑 ---
                     Debug.Log($"[{MOD_NAME}] [扎包] (非硬核) 跳过消耗 {currentInjectorInstance.DisplayName}"); //
                 }
                 ShowBubbleAsync(mainCharacter.transform, "收纳包针剂处理完毕", 2.0f).Forget(); //
@@ -565,20 +570,85 @@ namespace AddBuffMod
         }
 
         /// <summary>
-        /// (修改) 辅助函数：按顺序查找并选择性消耗硬核模式物品
+        /// (修改 V3.4) 辅助函数：按顺序查找并选择性消耗硬核模式物品
         /// </summary>
         /// <param name="consume">如果为 true，找到后立即消耗；如果为 false，只查找不消耗。</param>
-        /// <returns>返回包含找到的 Item、其容器(Inventory或SlotCollection)和位置描述的元组。未找到则 Item 为 null。</returns>
-        private async UniTask<ValueTuple<Item, object, string>> FindAndConsumeHardcoreItemAsync(int itemID, CharacterMainControl mainCharacter, bool consume) // 参数 consume 控制是否消耗
+        /// <returns>返回 (bool Success, Item FoundItem, object Container, string Location)。Success 表示是否找到。FoundItem 是找到的物品引用 (即使在 consume=true 时被销毁)。</returns>
+        private async UniTask<ValueTuple<bool, Item, object, string>> FindAndConsumeHardcoreItemAsync(int itemID, CharacterMainControl mainCharacter, bool consume) // [修改 V3.4] 返回类型
         {
-            // ... (代码同 V2.25，无需修改) ...
-            if (itemID <= 0) return (null, null, "无需消耗");
-            Func<object, Item, string, bool> processFoundItem = (container, item, location) => { if (consume) { Debug.Log($"[{MOD_NAME}] [HardcoreConsume] Found ID {itemID} in {location}. Consuming..."); ConsumeItemSmart(container, item); } else { Debug.Log($"[{MOD_NAME}] [HardcoreFind] Found ID {itemID} in {location}. (Not consuming)"); } return true; };
+            if (itemID <= 0) return (true, null, null, "无需消耗"); // [修改 V3.4] (Success=true)
+
+            // (V3.3 逻辑) 此委托在 consume=true 时销毁物品
+            Func<object, Item, string, bool> processFoundItem = (container, item, location) =>
+            {
+                if (consume)
+                {
+                    Debug.Log($"[{MOD_NAME}] [HardcoreConsume] Found ID {itemID} in {location}. Consuming...");
+                    ConsumeItemSmart(container, item);
+                }
+                else
+                {
+                    Debug.Log($"[{MOD_NAME}] [HardcoreFind] Found ID {itemID} in {location}. (Not consuming)");
+                }
+                return true;
+            };
+
             Inventory mainInventory = mainCharacter.GetComponentInChildren<Inventory>();
-            if (mainInventory != null) { Item item = mainInventory.Content.FirstOrDefault(i => i != null && i.TypeID == itemID); if (item != null) { if (processFoundItem(mainInventory, item, "玩家背包")) return (item, mainInventory, "玩家背包"); } List<Item> pouches = mainInventory.Content.Where(i => i != null && i.TypeID == POUCH_ID).ToList(); foreach (var pouch in pouches) { SlotCollection sc = pouch.GetComponent<SlotCollection>(); if (sc != null) { Slot slot = sc.FirstOrDefault(s => s?.Content != null && s.Content.TypeID == itemID); if (slot?.Content != null) { if (processFoundItem(sc, slot.Content, "玩家收纳包")) return (slot.Content, sc, "玩家收纳包"); } } } } else { Debug.LogWarning($"[{MOD_NAME}] [HardcoreSearch] Could not get Player Inventory!"); }
+            if (mainInventory != null)
+            {
+                Item item = mainInventory.Content.FirstOrDefault(i => i != null && i.TypeID == itemID);
+                if (item != null)
+                {
+                    if (processFoundItem(mainInventory, item, "玩家背包"))
+                        return (true, item, mainInventory, "玩家背包"); // [修改 V3.4] (Success=true)
+                }
+                List<Item> pouches = mainInventory.Content.Where(i => i != null && i.TypeID == POUCH_ID).ToList();
+                foreach (var pouch in pouches)
+                {
+                    SlotCollection sc = pouch.GetComponent<SlotCollection>();
+                    if (sc != null)
+                    {
+                        Slot slot = sc.FirstOrDefault(s => s?.Content != null && s.Content.TypeID == itemID);
+                        if (slot?.Content != null)
+                        {
+                            Item itemInSlot = slot.Content; // [修改 V3.4] 在 processFoundItem 之前获取引用
+                            if (processFoundItem(sc, itemInSlot, "玩家收纳包"))
+                                return (true, itemInSlot, sc, "玩家收纳包"); // [修改 V3.4] (Success=true)
+                        }
+                    }
+                }
+            }
+            else { Debug.LogWarning($"[{MOD_NAME}] [HardcoreSearch] Could not get Player Inventory!"); }
+
             Inventory petInventory = await FindPetInventoryAsync(mainCharacter);
-            if (petInventory != null) { Item item = petInventory.Content?.FirstOrDefault(i => i != null && i.TypeID == itemID); if (item != null) { if (processFoundItem(petInventory, item, "宠物背包")) return (item, petInventory, "宠物背包"); } List<Item> pouches = petInventory.Content?.Where(i => i != null && i.TypeID == POUCH_ID).ToList() ?? new List<Item>(); foreach (var pouch in pouches) { SlotCollection sc = pouch.GetComponent<SlotCollection>(); if (sc != null) { Slot slot = sc.FirstOrDefault(s => s?.Content != null && s.Content.TypeID == itemID); if (slot?.Content != null) { if (processFoundItem(sc, slot.Content, "宠物收纳包")) return (slot.Content, sc, "宠物收纳包"); } } } } else { Debug.LogWarning($"[{MOD_NAME}] [HardcoreSearch] Could not find Pet Inventory."); }
-            Debug.LogWarning($"[{MOD_NAME}] [HardcoreSearch] Item ID {itemID} not found in any searched location."); return (null, null, "未找到");
+            if (petInventory != null)
+            {
+                Item item = petInventory.Content?.FirstOrDefault(i => i != null && i.TypeID == itemID);
+                if (item != null)
+                {
+                    if (processFoundItem(petInventory, item, "宠物背包"))
+                        return (true, item, petInventory, "宠物背包"); // [修改 V3.4] (Success=true)
+                }
+                List<Item> pouches = petInventory.Content?.Where(i => i != null && i.TypeID == POUCH_ID).ToList() ?? new List<Item>();
+                foreach (var pouch in pouches)
+                {
+                    SlotCollection sc = pouch.GetComponent<SlotCollection>();
+                    if (sc != null)
+                    {
+                        Slot slot = sc.FirstOrDefault(s => s?.Content != null && s.Content.TypeID == itemID);
+                        if (slot?.Content != null)
+                        {
+                            Item itemInSlot = slot.Content; // [修改 V3.4] 在 processFoundItem 之前获取引用
+                            if (processFoundItem(sc, itemInSlot, "宠物收纳包"))
+                                return (true, itemInSlot, sc, "宠物收纳包"); // [修改 V3.4] (Success=true)
+                        }
+                    }
+                }
+            }
+            else { Debug.LogWarning($"[{MOD_NAME}] [HardcoreSearch] Could not find Pet Inventory."); }
+
+            Debug.LogWarning($"[{MOD_NAME}] [HardcoreSearch] Item ID {itemID} not found in any searched location.");
+            return (false, null, null, "未找到"); // [修改 V3.4] (Success=false)
         }
 
         /// <summary>
@@ -586,9 +656,8 @@ namespace AddBuffMod
         /// </summary>
         private async UniTask<Inventory> FindPetInventoryAsync(CharacterMainControl mainCharacter)
         {
+            // ... (代码同 V3.3，无需修改) ...
             LevelManager levelManager = LevelManager.Instance; if (levelManager == null) { Debug.LogWarning($"[{MOD_NAME}] [PetInvSearch] LevelManager null!"); return null; }
-
-            // --- 1. 优先搜索 PetProxy ---
             PetProxy petProxy = levelManager.PetProxy; //
             if (petProxy != null)
             {
@@ -596,22 +665,18 @@ namespace AddBuffMod
                 Inventory[] proxyInventories = null; try { proxyInventories = petProxy.GetComponentsInChildren<Inventory>(true); } catch { }
                 if (proxyInventories != null && proxyInventories.Length > 0)
                 {
-                    // 优先返回容量为 4 的
                     Inventory capacity4Inv = proxyInventories.FirstOrDefault(inv => inv != null && inv.Capacity == 4); //
                     if (capacity4Inv != null)
                     {
                         Debug.Log($"[{MOD_NAME}] [PetInvSearch] Found 4-slot Inventory (ID: {capacity4Inv.GetInstanceID()}) on PetProxy. Using this.");
                         return capacity4Inv;
                     }
-                    // 否则返回第一个
                     Debug.LogWarning($"[{MOD_NAME}] [PetInvSearch] Found {proxyInventories.Length} inventories on PetProxy, but none with Capacity=4. Returning first one.");
                     return proxyInventories.FirstOrDefault(inv => inv != null);
                 }
                 else { Debug.LogWarning($"[{MOD_NAME}] [PetInvSearch] PetProxy found, but no Inventories on it."); }
             }
             else { Debug.LogWarning($"[{MOD_NAME}] [PetInvSearch] LevelManager.Instance.PetProxy was null."); }
-
-            // --- 2. 回退到 PetCharacter ---
             Debug.LogWarning($"[{MOD_NAME}] [PetInvSearch] Could not find via PetProxy, falling back to PetCharacter...");
             CharacterMainControl petCharacter = levelManager.PetCharacter; //
             if (petCharacter == null) { Debug.LogWarning($"[{MOD_NAME}] [PetInvSearch] PetCharacter null!"); return null; }
@@ -621,7 +686,6 @@ namespace AddBuffMod
                 Debug.LogWarning($"[{MOD_NAME}] [PetInvSearch] Found {petInventories.Length} inventories on PetCharacter. Returning first one (Capacity: {petInventories.FirstOrDefault(inv => inv != null)?.Capacity}).");
                 return petInventories.FirstOrDefault(inv => inv != null);
             }
-
             Debug.LogError($"[{MOD_NAME}] [PetInvSearch] Failed to find any Inventory on PetProxy or PetCharacter.");
             return null;
         }
@@ -631,11 +695,11 @@ namespace AddBuffMod
         /// </summary>
         private async UniTask<ValueTuple<Item, Inventory, string>> FindPouchAndParentInventoryAsync(CharacterMainControl mainCharacter)
         {
-            // ... (代码同 V2.25，但会使用上面更新的 FindPetInventoryAsync) ...
+            // ... (代码同 V3.3，无需修改) ...
             Item pouchItem = null; Inventory ownerInventory = null; string location = "未知";
             Inventory mainInv = mainCharacter.GetComponentInChildren<Inventory>();
             if (mainInv != null) { pouchItem = mainInv.Content?.FirstOrDefault(i => i != null && i.TypeID == POUCH_ID); if (pouchItem != null) { ownerInventory = mainInv; location = "玩家背包"; return (pouchItem, ownerInventory, location); } }
-            Inventory petInv = await FindPetInventoryAsync(mainCharacter); // <-- 这会调用 V2.33 的新逻辑
+            Inventory petInv = await FindPetInventoryAsync(mainCharacter); // <-- 这会调用 V3.3 的新逻辑
             if (petInv != null) { pouchItem = petInv.Content?.FirstOrDefault(i => i != null && i.TypeID == POUCH_ID); if (pouchItem != null) { ownerInventory = petInv; location = "宠物背包"; return (pouchItem, ownerInventory, location); } }
             return (null, null, location);
         }
@@ -645,7 +709,7 @@ namespace AddBuffMod
         /// </summary>
         private void ConsumeItemSmart(object container, Item item)
         {
-            // ... (代码同 V2.25，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             if (item == null || container == null) return;
             if (container is Inventory inv) { ConsumeItem(inv, item); }
             else if (container is SlotCollection sc) { ConsumeItemFromSlot(sc, item); }
@@ -658,7 +722,7 @@ namespace AddBuffMod
         /// </summary>
         private void ConsumeItemFromSlot(SlotCollection ownerCollection, Item item)
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             if (item == null || ownerCollection == null) return; try { if (item.Stackable && item.StackCount > 1) { item.StackCount--; Debug.Log($"[{MOD_NAME}] [ConsumeSlotItem] Decremented {item.DisplayName} stack to {item.StackCount}"); } else { Debug.Log($"[{MOD_NAME}] [ConsumeSlotItem] Destroying last {item.DisplayName}"); if (item.gameObject != null) { Slot parentSlot = ownerCollection.FirstOrDefault(s => s?.Content == item); parentSlot?.Unplug(); Destroy(item.gameObject); } else Debug.LogWarning($"[{MOD_NAME}] [ConsumeSlotItem] GameObject null for {item.DisplayName}!"); } } catch (Exception e) { Debug.LogError($"[{MOD_NAME}] Error consuming slot item {item.DisplayName}: {e.Message}"); } //
         }
 
@@ -667,7 +731,7 @@ namespace AddBuffMod
         /// </summary>
         private void ConsumeItem(Inventory inventory, Item item)
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             if (item == null || inventory == null) return; try { if (item.Stackable && item.StackCount > 1) item.StackCount--; else { bool removed = inventory.RemoveItem(item); if (removed && item.gameObject != null) Destroy(item.gameObject); else if (!removed) { Debug.LogWarning($"[{MOD_NAME}] RemoveItem failed for {item.DisplayName}, still trying Destroy..."); if (item.gameObject != null) Destroy(item.gameObject); } } } catch (Exception e) { Debug.LogError($"[{MOD_NAME}] Error consuming inventory item {item.DisplayName}: {e.Message}"); } //
         }
 
@@ -676,19 +740,17 @@ namespace AddBuffMod
         /// </summary>
         private async UniTask ShowBubbleAsync(Transform targetTransform, string message, float duration = 2f)
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             if (targetTransform == null) { Debug.LogWarning($"[{MOD_NAME}] ShowBubbleAsync: targetTransform null (Msg: {message})"); return; }
             try { await DialogueBubblesManager.Show(message, targetTransform, duration: duration); } catch (Exception e) { Debug.LogError($"[{MOD_NAME}] Error showing bubble: {e.Message}"); } //
         }
-
-        // (移除) LogInventoryContent 和 LogComponents 辅助函数
 
         /// <summary>
         /// 辅助方法: 打印当前配置信息到日志
         /// </summary>
         private void LogModInfo()
         {
-            // ... (代码同 V2.22，无需修改) ...
+            // ... (代码同 V3.3，无需修改) ...
             Debug.Log($"[{MOD_NAME}] Config Loaded - HoldTime: {_holdDurationConfig}s | Hardcore: {_hardcoreModeConfig} | InstantNineDragons: {_instantNineDragonsConfig} | PouchKey: {_pouchUseKeyCode} | Buff Hotkeys: {_buffKeyMap.Count}");
         }
     }

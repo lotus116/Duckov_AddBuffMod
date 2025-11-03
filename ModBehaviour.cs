@@ -1,5 +1,6 @@
 ﻿// ------------------------------------------------------------------
-// AddBuffMod - 【V3.3.2 - 修复硬核模式热键消耗Bug】
+// AddBuffMod - 【V3.4 - 最终尝试：ID 856 映射到 StormProtection1 (1113)】
+// - 针对 ID 856 无法生效的问题，切换到 StormProtection1。
 // - 按键、长按时长、硬核模式、一键九龙 均可自定义
 // - 重要修复: 修复硬核模式下，热键使用单个针剂(如黄针、热血)时，导致物品消耗但Buff未添加的Bug (2025/10/30 8:40)
 // - 重要修复: 优先搜索 PetProxy 上的 Inventory，确保正确找到 4 格宠物背包
@@ -8,7 +9,7 @@
 // - 优化: 原始 9 Buff 热键现在显示中文气泡
 // - 优化: 扎包 0.5 秒使用间隔 （提供一种视觉上的遍历使用的感觉）
 // - 优化: 使用异步方法缓存 Buff 预制体，避免卡顿
-//  cclear116 于 2025/10/30
+//  cclear116 于 2025/10/31
 // ------------------------------------------------------------------
 
 using UnityEngine;                // MonoBehaviour, Debug, Input, KeyCode, Resources, Component
@@ -162,6 +163,8 @@ namespace AddBuffMod
             ModConfigAPI.SafeAddInputWithSlider(MOD_NAME, "BuffKey13", "Buff 13 [毒抗] Key", typeof(string), "None", null); //
             ModConfigAPI.SafeAddInputWithSlider(MOD_NAME, "BuffKey14", "Buff 14 [空间抗] Key", typeof(string), "None", null); //
             ModConfigAPI.SafeAddInputWithSlider(MOD_NAME, "BuffKey15", "Buff 15 [止血] Key", typeof(string), "None", null); //
+            // 【新增】Buff 16 [弱效空间抵抗]
+            ModConfigAPI.SafeAddInputWithSlider(MOD_NAME, "BuffKey16", "Buff 16 [弱效空间抵抗] Key", typeof(string), "None", null); //
             Debug.Log($"[{MOD_NAME}] ModConfig setup completed");
             _configRegistered = true;
         }
@@ -198,6 +201,8 @@ namespace AddBuffMod
             LoadAndMapKey("BuffKey11", "None", "1015_Buff_InjectorMeleeDamage"); LoadAndMapKey("BuffKey12", "None", "1074_Buff_FireResistShort");
             LoadAndMapKey("BuffKey13", "None", "1075_Buff_PoisonResistShort"); LoadAndMapKey("BuffKey14", "None", "1076_Buff_SpaceResistShort");
             LoadAndMapKey("BuffKey15", "None", "1019_buff_Injector_BleedResist");
+            // 【修改 Buff 16】弱效空间抵抗 (ID 856) -> 应用 1113_Buff_StormProtection1
+            LoadAndMapKey("BuffKey16", "None", "1113_Buff_StormProtection1");
             string key0Str = ModConfigAPI.SafeLoad<string>(MOD_NAME, "NineDragonsKey", "Alpha0"); //
             if (!System.Enum.TryParse<KeyCode>(key0Str, true, out _nineDragonsKeyCode)) _nineDragonsKeyCode = KeyCode.None;
             LogModInfo();
@@ -229,6 +234,8 @@ namespace AddBuffMod
             _buffItemMap["1015_Buff_InjectorMeleeDamage"] = 800; _buffItemMap["1074_Buff_FireResistShort"] = 1070;
             _buffItemMap["1075_Buff_PoisonResistShort"] = 1071; _buffItemMap["1076_Buff_SpaceResistShort"] = 1072;
             _buffItemMap["1019_buff_Injector_BleedResist"] = 1247;
+            // 【修改 ID 856 映射的 Buff 名称】
+            _buffItemMap["1113_Buff_StormProtection1"] = 856; // 切换到 StormProtection1
         }
 
         /// <summary>
@@ -240,7 +247,7 @@ namespace AddBuffMod
             _itemIdToBuffNameMap.Clear();
             foreach (var kvp in _buffItemMap) { if (!string.IsNullOrEmpty(kvp.Key) && kvp.Value >= 0) _itemIdToBuffNameMap[kvp.Value] = kvp.Key; }
             _itemIdToBuffNameMap[395] = null; _itemIdToBuffNameMap[857] = null;
-            _itemIdToBuffNameMap[856] = null;
+            // 【已修正：移除冗余的 ID 856 覆盖】原代码中的 _itemIdToBuffNameMap[856] = null; 已移除，确保 ID 856 映射正确。
             if (!_itemIdToBuffNameMap.ContainsKey(0)) _itemIdToBuffNameMap[0] = "1201_Buff_NightVision"; //
             Debug.Log($"[{MOD_NAME}] Initialized ItemID to BuffName Map with {_itemIdToBuffNameMap.Count} entries.");
         }
@@ -275,6 +282,8 @@ namespace AddBuffMod
             _buffDragonNames["1084_Buff_PainResistLong"] = "美替诺龙";
             _buffDragonNames["1201_Buff_NightVision"] = "斯滕伯龙";
             _buffDragonNames["1014_Buff_InjectorStamina"] = "醋酸群勃龙";
+            // 【修改 Buff 16 对应的龙名】
+            _buffDragonNames["1113_Buff_StormProtection1"] = "风暴保护龙1"; // Buff名切换到 1113
 
             _buffChineseNames.Clear();
             _buffChineseNames["1018_Buff_HealForWhile"] = "缓疗";
@@ -287,6 +296,8 @@ namespace AddBuffMod
             _buffChineseNames["1201_Buff_NightVision"] = "明视";
             _buffChineseNames["1014_Buff_InjectorStamina"] = "持久";
             _buffChineseNames["1019_buff_Injector_BleedResist"] = "止血";
+            // 【修改 Buff 16 对应的中文 Buff 名】
+            _buffChineseNames["1113_Buff_StormProtection1"] = "风暴防护1"; // Buff名切换到 1113
 
             _buffItemChineseNames.Clear();
             _buffItemChineseNames["1018_Buff_HealForWhile"] = "恢复针";
@@ -303,6 +314,8 @@ namespace AddBuffMod
             _buffItemChineseNames["1075_Buff_PoisonResistShort"] = "毒抗性针";
             _buffItemChineseNames["1076_Buff_SpaceResistShort"] = "空间抗性针";
             _buffItemChineseNames["1019_buff_Injector_BleedResist"] = "止血针";
+            // 【修改 Buff 16 对应的物品中文名，ID 仍是 856】
+            _buffItemChineseNames["1113_Buff_StormProtection1"] = "弱效空间防护针";
         }
 
 
@@ -457,17 +470,55 @@ namespace AddBuffMod
 
 
         /// <summary>
-        /// (修改) 触发单个 Buff (通过热键) - 直接添加 Buff，硬核模式增强搜索
+        /// (修改) 触发单个 Buff (通过热键) - 针对 Buff 16 增加特殊处理
         /// </summary>
         private async UniTask TriggerBuffAsync(string buffName, KeyCode key) // 传入 buffName
         {
             CharacterMainControl mainCharacter = null;
+            Buff buffPrefab = null; // 声明在外面，方便特殊处理
+
             try
             {
                 mainCharacter = CharacterMainControl.Main; if (mainCharacter == null) { Debug.LogError($"[{MOD_NAME}] Cannot get main character!"); return; }
-                if (!_buffPrefabCache.TryGetValue(buffName, out Buff buffPrefab)) { Debug.LogError($"[{MOD_NAME}] Trigger failed! Prefab '{buffName}' not cached."); ShowBubbleAsync(mainCharacter.transform, $"错误：Buff {buffName} 未找到！", 2f).Forget(); return; } //
 
-                // --- (修改) 硬核模式检查与消耗 ---
+                // 【核心修正区域 Start】
+                // 针对 ID 856 对应的 Buff 进行特殊处理
+                if (buffName == "1113_Buff_StormProtection1")
+                {
+                    // 打印日志，确认代码进入特殊路径
+                    Debug.Log($"[{MOD_NAME}] WARNING: Entering special logic for Buff: {buffName}.");
+
+                    // 尝试从缓存中获取
+                    _buffPrefabCache.TryGetValue(buffName, out buffPrefab);
+
+                    if (buffPrefab == null)
+                    {
+                        // 如果缓存失败（可能游戏加载时机问题），尝试实时查找一次（可能造成卡顿）
+                        Debug.LogWarning($"[{MOD_NAME}] Special Buff '{buffName}' not found in cache. Attempting manual resource scan.");
+                        Buff[] allBuffs = Resources.FindObjectsOfTypeAll<Buff>();
+                        buffPrefab = allBuffs.FirstOrDefault(b => b != null && b.name == buffName && b.gameObject.scene.name == null);
+                    }
+
+                    if (buffPrefab == null)
+                    {
+                        Debug.LogError($"[{MOD_NAME}] Trigger failed! SPECIAL Buff '{buffName}' could not be located in cache or resources.");
+                        ShowBubbleAsync(mainCharacter.transform, $"错误：Buff {buffName} 致命错误，未找到预制体！", 2f).Forget();
+                        return;
+                    }
+                }
+                else
+                {
+                    // 对所有其他正常工作的 Buff，使用标准缓存查找
+                    if (!_buffPrefabCache.TryGetValue(buffName, out buffPrefab))
+                    {
+                        Debug.LogError($"[{MOD_NAME}] Trigger failed! Prefab '{buffName}' not cached.");
+                        ShowBubbleAsync(mainCharacter.transform, $"错误：Buff {buffName} 未找到！", 2f).Forget();
+                        return;
+                    }
+                }
+                // 【核心修正区域 End】
+
+                // --- (硬核模式检查与消耗) ---
                 bool canProceed = true; // 默认可以继续
                 if (_hardcoreModeConfig)
                 {
@@ -513,22 +564,14 @@ namespace AddBuffMod
         }
 
         /// <summary>
-        /// (修改) 触发 '一键扎包' (统一 AddBuff + 永不消耗 + 硬核提示)
+        /// (修改) 触发 '一键扎包' (统一 AddBuff + 硬核模式下消耗物品)
         /// </summary>
         private async UniTask TriggerPouchUseAsync()
         {
-            // ... (代码同 V3.3，无需修改) ...
             CharacterMainControl mainCharacter = null;
             try
             {
                 mainCharacter = CharacterMainControl.Main; if (mainCharacter == null) { Debug.LogError($"[{MOD_NAME}] [扎包] 无法获取主角色！"); return; }
-
-                if (_hardcoreModeConfig)
-                {
-                    Debug.LogWarning($"[{MOD_NAME}] [扎包] (硬核模式) '一键扎包' 仅添加Buff，不消耗物品。");
-                    ShowBubbleAsync(mainCharacter.transform, "此功能目前仅支持非硬核模式开启", 3.0f).Forget(); //
-                    return;
-                }
 
                 Item pouchItem = null; string foundLocation = "未知";
                 var searchResult = await FindPouchAndParentInventoryAsync(mainCharacter);
@@ -536,33 +579,111 @@ namespace AddBuffMod
                 if (pouchItem == null) { Debug.LogWarning($"[{MOD_NAME}] [扎包] 未找到收纳包"); ShowBubbleAsync(mainCharacter.transform, "未找到注射器收纳包", 2f).Forget(); return; } // 
                 SlotCollection slotCollection = pouchItem.GetComponent<SlotCollection>();
                 if (slotCollection == null) { Debug.LogError($"[{MOD_NAME}] [扎包] 失败！未找到 SlotCollection。"); ShowBubbleAsync(mainCharacter.transform, "错误:无法访问收纳包插槽", 2f).Forget(); return; } // 
-                Debug.Log($"[{MOD_NAME}] [扎包] 找到 SlotCollection (来自{foundLocation})，准备处理 (非消耗模式)...");
-                HashSet<int> processedTypeIDs = new HashSet<int>(); List<Item> injectorsToProcess = new List<Item>();
-                foreach (Slot slot in slotCollection) { Item injector = slot?.Content; if (injector != null && injector.TypeID > 0 && !processedTypeIDs.Contains(injector.TypeID)) { injectorsToProcess.Add(injector); processedTypeIDs.Add(injector.TypeID); } }
-                if (injectorsToProcess.Count == 0) { Debug.LogWarning($"[{MOD_NAME}] [扎包] 收纳包为空。"); ShowBubbleAsync(mainCharacter.transform, "收纳包无可用针剂", 2f).Forget(); return; } //
-                ShowBubbleAsync(mainCharacter.transform, $"开始处理 {injectorsToProcess.Count} 种针剂 (不消耗)...", 2.0f).Forget(); // 
+
+                // 获取收纳包内所有独特的有效针剂 (非空、ID>0 且有对应 Buff)
+                HashSet<int> processedTypeIDs = new HashSet<int>();
+                List<Item> injectorsToProcess = new List<Item>();
+                foreach (Slot slot in slotCollection)
+                {
+                    Item injector = slot?.Content;
+                    if (injector != null && injector.TypeID > 0 && !processedTypeIDs.Contains(injector.TypeID))
+                    {
+                        if (_itemIdToBuffNameMap.ContainsKey(injector.TypeID) && _itemIdToBuffNameMap[injector.TypeID] != null)
+                        {
+                            injectorsToProcess.Add(injector);
+                            processedTypeIDs.Add(injector.TypeID);
+                        }
+                    }
+                }
+
+                if (injectorsToProcess.Count == 0)
+                {
+                    Debug.LogWarning($"[{MOD_NAME}] [扎包] 收纳包内无可用针剂。");
+                    ShowBubbleAsync(mainCharacter.transform, "收纳包无可用针剂", 2f).Forget();
+                    return;
+                }
+
+                if (_hardcoreModeConfig)
+                {
+                    Debug.Log($"[{MOD_NAME}] [扎包] (硬核模式) 启动，准备消耗 {injectorsToProcess.Count} 种针剂并添加Buff...");
+                    ShowBubbleAsync(mainCharacter.transform, $"硬核扎包启动，准备消耗针剂...", 2.0f).Forget();
+                }
+                else
+                {
+                    Debug.Log($"[{MOD_NAME}] [扎包] (非硬核) 启动，添加 {injectorsToProcess.Count} 种 Buff (不消耗)...");
+                    ShowBubbleAsync(mainCharacter.transform, $"扎包启动 (不消耗)...", 2.0f).Forget();
+                }
+
+                // 遍历并处理针剂
                 foreach (Item injectorRef in injectorsToProcess)
                 {
+                    // 必须再次获取插槽内容，以防物品在异步等待中被移除或替换
                     Slot currentSlot = slotCollection.FirstOrDefault(s => s?.Content?.GetInstanceID() == injectorRef.GetInstanceID());
                     Item currentInjectorInstance = currentSlot?.Content;
-                    if (currentInjectorInstance == null) { Debug.LogWarning($"[{MOD_NAME}] [扎包] 物品 {injectorRef.DisplayName} ({injectorRef.GetInstanceID()}) 处理前被移除。"); continue; } //
 
-                    bool buffApplied = false;
+                    if (currentInjectorInstance == null)
+                    {
+                        Debug.LogWarning($"[{MOD_NAME}] [扎包] 物品 {injectorRef.DisplayName} ({injectorRef.GetInstanceID()}) 处理前被移除。");
+                        continue;
+                    }
+
                     if (_itemIdToBuffNameMap.TryGetValue(currentInjectorInstance.TypeID, out string buffName) && buffName != null)
                     {
-                        if (_buffPrefabCache.TryGetValue(buffName, out Buff buffPrefab))
+                        // --- 【扎包 BuffPrefab 查找逻辑】---
+                        Buff buffPrefab = null;
+                        // 针对 ID 856 对应的 Buff 进行特殊查找逻辑
+                        if (buffName == "1113_Buff_StormProtection1")
                         {
-                            Debug.Log($"[{MOD_NAME}] [扎包] (非硬核) 正在应用 Buff '{buffPrefab.name}' 来自 {currentInjectorInstance.DisplayName}"); //
-                            mainCharacter.AddBuff(buffPrefab, mainCharacter); buffApplied = true; //
+                            // 尝试从缓存中获取
+                            _buffPrefabCache.TryGetValue(buffName, out buffPrefab);
+                            if (buffPrefab == null)
+                            {
+                                // 如果缓存失败（可能游戏加载时机问题），尝试实时查找一次（可能造成卡顿）
+                                Buff[] allBuffs = Resources.FindObjectsOfTypeAll<Buff>();
+                                buffPrefab = allBuffs.FirstOrDefault(b => b != null && b.name == buffName && b.gameObject.scene.name == null);
+                            }
                         }
-                        else Debug.LogWarning($"[{MOD_NAME}] [扎包] Buff '{buffName}' 未缓存！");
+                        else
+                        {
+                            // 对于其他 Buff，使用标准缓存
+                            _buffPrefabCache.TryGetValue(buffName, out buffPrefab);
+                        }
+                        // --- 【END 扎包 BuffPrefab 查找逻辑】---
+
+                        if (buffPrefab != null)
+                        {
+                            // 1. 添加 Buff
+                            mainCharacter.AddBuff(buffPrefab, mainCharacter);
+
+                            if (_hardcoreModeConfig)
+                            {
+                                // 2. 硬核模式：消耗物品 (从 SlotCollection 中消耗)
+                                ConsumeItemSmart(slotCollection, currentInjectorInstance);
+                                if (_buffChineseNames.TryGetValue(buffName, out string chineseName))
+                                    ShowBubbleAsync(mainCharacter.transform, $"[{chineseName}] 激活 (消耗)", 1.5f).Forget();
+                            }
+                            else
+                            {
+                                // 2. 非硬核模式：不消耗物品
+                                if (_buffChineseNames.TryGetValue(buffName, out string chineseName))
+                                    ShowBubbleAsync(mainCharacter.transform, $"[{chineseName}] 激活 (免费)", 1.5f).Forget();
+                                Debug.Log($"[{MOD_NAME}] [扎包] (非硬核) 跳过消耗 {currentInjectorInstance.DisplayName}");
+                            }
+
+                            Debug.Log($"[{MOD_NAME}] [扎包] 正在应用 Buff '{buffPrefab.name}' 来自 {currentInjectorInstance.DisplayName}");
+                        }
+                        else
+                        {
+                            Debug.LogWarning($"[{MOD_NAME}] [扎包] Buff '{buffName}' 未缓存或无法找到预制体！");
+                        }
                     }
-                    else { Debug.Log($"[{MOD_NAME}] [扎包] 物品 {currentInjectorInstance.DisplayName} (ID: {currentInjectorInstance.TypeID}) 无对应 Buff。"); } //
+
+                    // 3. 等待间隔
                     Debug.Log($"[{MOD_NAME}] [扎包] 等待 {POUCH_USE_INTERVAL} 秒...");
                     await UniTask.Delay(TimeSpan.FromSeconds(POUCH_USE_INTERVAL));
-                    Debug.Log($"[{MOD_NAME}] [扎包] (非硬核) 跳过消耗 {currentInjectorInstance.DisplayName}"); //
                 }
-                ShowBubbleAsync(mainCharacter.transform, "收纳包针剂处理完毕", 2.0f).Forget(); //
+
+                ShowBubbleAsync(mainCharacter.transform, "收纳包针剂处理完毕", 2.0f).Forget();
                 Debug.Log($"[{MOD_NAME}] [扎包] 收纳包内针剂处理完毕。");
             }
             catch (Exception e) { Debug.LogError($"[{MOD_NAME}] [扎包] 触发时出错: {e.Message}\n{e.StackTrace}"); if (mainCharacter != null) ShowBubbleAsync(mainCharacter.transform, "[扎包] 出错!", 2f).Forget(); } // 
